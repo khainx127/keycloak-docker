@@ -1,0 +1,42 @@
+version: '3.5'
+
+networks:
+  keycloak-network:
+    name: keycloak-network
+    driver: bridge
+
+services:
+  keycloak.mysql:
+    image: mysql:8.0
+    container_name: keycloak-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=P@ssw0rd
+      - MYSQL_PASSWORD=P@ssw0rd
+      - MYSQL_USER=keycloak
+      - MYSQL_DATABASE=keycloak_users
+    volumes:
+      - ./keycloak-database:/var/lib/mysql
+    # command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+    # ports:
+      # - 3309:3306
+    networks:
+      - keycloak-network
+
+  keycloak:
+    depends_on:
+      - keycloak.mysql
+    image: jboss/keycloak:9.0.2
+    container_name: keycloak
+    environment:
+      - DB_VENDOR=MYSQL
+      - DB_ADDR=keycloak-mysql
+      - DB_DATABASE=keycloak_users
+      - DB_USER=root
+      - DB_PASSWORD=P@ssw0rd
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=P@ssw0rd
+      # - PROXY_ADDRESS_FORWARDING=true
+    ports:
+      - 8081:8080
+    networks:
+      - keycloak-network
